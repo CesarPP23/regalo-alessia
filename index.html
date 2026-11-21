@@ -241,7 +241,14 @@
   }
 
   .polaroid {
+    display: block;
+    width: 100%;
     margin: 0;
+    border: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
     background: var(--ticket-bg);
     padding: 6px 6px 18px;
     border-radius: 4px;
@@ -258,8 +265,76 @@
   /* si la ultima foto queda sola en su fila, centrarla */
   .polaroid:last-child:nth-child(3n+1) { grid-column: 2; }
   .polaroid:hover { transform: rotate(0deg) scale(1.04); }
+  .polaroid:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+  .pista {
+    margin: -4px 0 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  /* ---------- Vista ampliada de una foto ---------- */
+  .visor {
+    width: min(92vw, 420px);
+    max-height: 92vh;
+    max-height: 92dvh;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: var(--ticket-bg);
+    color: var(--ticket-ink);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    overflow: visible;
+  }
+  .visor::backdrop {
+    background: rgba(18, 9, 38, 0.82);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+  }
+  .visor[open] { animation: visor-in 0.25s ease both; }
+  @keyframes visor-in {
+    from { opacity: 0; transform: scale(0.94) rotate(-1.5deg); }
+    to   { opacity: 1; transform: none; }
+  }
+  .visor-marco {
+    position: relative;
+    padding: 12px 12px 18px;
+  }
+  .visor img {
+    display: block;
+    width: 100%;
+    max-height: 68vh;
+    max-height: 68dvh;
+    object-fit: contain;
+    background: #1b1035;
+    border-radius: 2px;
+  }
+  .visor-frase {
+    margin: 14px 4px 0;
+    text-align: center;
+    font-size: 1.08rem;
+    line-height: 1.45;
+    font-weight: 600;
+    color: var(--bg-2);
+  }
+  .visor-cerrar {
+    position: absolute;
+    top: -14px;
+    right: -10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 210, 122, 0.6);
+    background: var(--bg-1);
+    color: var(--gold);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .visor-cerrar:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 
   .polaroid .foto {
+    display: block;
     position: relative;
     aspect-ratio: 4 / 5;
     overflow: hidden;
@@ -392,6 +467,7 @@
 
   <section class="collage-wrap" aria-label="Nuestras fotos">
     <div class="collage" id="collage"></div>
+    <p class="pista">Toca cada foto ♡</p>
     <div class="lock-row" id="lock">
       <span class="lock-badge" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
@@ -402,6 +478,14 @@
 
   <p class="message" id="mensaje"></p>
 </main>
+
+<dialog class="visor" id="visor" aria-labelledby="visor-frase">
+  <div class="visor-marco">
+    <img id="visor-img" alt="">
+    <p class="visor-frase" id="visor-frase"></p>
+    <button type="button" class="visor-cerrar" id="visor-cerrar" aria-label="Cerrar">×</button>
+  </div>
+</dialog>
 
 <template id="tpl-ticket">
     <article class="ticket" id="ticket" aria-label="Boleto de avión">
@@ -451,9 +535,19 @@
     hora: "07:30",
     asiento: "14A",
     reserva: "ABC123",
-    // Fotos del collage: reemplaza o agrega rutas (p. ej. sube las fotos a la carpeta fotos/)
-    fotos: ["fotos/1.jpg", "fotos/2.jpg", "fotos/3.jpg", "fotos/4.jpg", "fotos/5.jpg",
-            "fotos/6.jpg", "fotos/7.jpg", "fotos/8.jpg", "fotos/9.jpg", "fotos/10.jpg"],
+    // Fotos del collage: cambia la frase que aparece al tocar cada foto
+    fotos: [
+      { src: "fotos/1.jpg",  frase: "Mi selfie favorita: tú, yo y esa sonrisa tuya." },
+      { src: "fotos/2.jpg",  frase: "Qué orgulloso estoy de ti, hoy y siempre." },
+      { src: "fotos/3.jpg",  frase: "Contigo cualquier lugar se siente como casa." },
+      { src: "fotos/4.jpg",  frase: "Tú y yo, en el reflejo y en todo lo demás." },
+      { src: "fotos/5.jpg",  frase: "Esa sonrisa me gana todas las veces." },
+      { src: "fotos/6.jpg",  frase: "Mi plan favorito siempre eres tú." },
+      { src: "fotos/7.jpg",  frase: "Gracias por cada abrazo y cada risa." },
+      { src: "fotos/8.jpg",  frase: "Las mejores noches son las que paso contigo." },
+      { src: "fotos/9.jpg",  frase: "Contigo hasta los días grises son bonitos." },
+      { src: "fotos/10.jpg", frase: "Brillas más que todas las luces de la ciudad." }
+    ],
     mensaje: "Este viaje es para recordarte que <em>mereces todo lo bonito</em> que el mundo tiene para ofrecer. Prepara la maleta, porque lo mejor <em>apenas está empezando</em>."
   };
 
@@ -470,10 +564,34 @@
     // Collage de fotos (si una foto no existe, se muestra un marcador)
     const corazon = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.6-9.1C.9 8.6 2.8 4.5 6.6 4.5c2.2 0 3.6 1.2 5.4 3.2 1.8-2 3.2-3.2 5.4-3.2 3.8 0 5.7 4.1 4.2 7.4C19.5 16.4 12 21 12 21z"/></svg>';
     const collage = $("collage");
-    (CONFIG.fotos || []).forEach(function (src, i) {
-      const fig = document.createElement("figure");
+    const visor = $("visor");
+    const visorImg = $("visor-img");
+    const visorFrase = $("visor-frase");
+
+    function abrirFoto(src, frase, alt) {
+      visorImg.src = src;
+      visorImg.alt = alt;
+      visorFrase.textContent = frase || "";
+      if (typeof visor.showModal === "function") visor.showModal();
+      else visor.setAttribute("open", "");
+    }
+    function cerrarFoto() {
+      if (typeof visor.close === "function") visor.close();
+      else visor.removeAttribute("open");
+    }
+    $("visor-cerrar").addEventListener("click", cerrarFoto);
+    // tocar fuera de la foto (en el fondo) cierra; Esc lo maneja el propio <dialog>
+    visor.addEventListener("click", function (e) { if (e.target === visor) cerrarFoto(); });
+
+    (CONFIG.fotos || []).forEach(function (item, i) {
+      const src = typeof item === "string" ? item : item.src;
+      const frase = typeof item === "string" ? "" : (item.frase || "");
+      const fig = document.createElement("button");
+      fig.type = "button";
       fig.className = "polaroid";
-      const marco = document.createElement("div");
+      fig.setAttribute("aria-label", "Ver foto " + (i + 1) + (frase ? " y su frase" : ""));
+      fig.addEventListener("click", function () { abrirFoto(src, frase, "Foto " + (i + 1)); });
+      const marco = document.createElement("span");
       marco.className = "foto";
       const img = new Image();
       img.alt = "Foto " + (i + 1);
