@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Una sorpresa para ti</title>
+<style>
+  :root {
+    --bg-1: #1b1035;
+    --bg-2: #3b1d5c;
+    --text: #f6f0ff;
+    --muted: #c9b8e6;
+    --gold: #ffd27a;
+    --pink: #ff8fab;
+    --ticket-bg: #fffaf2;
+    --ticket-ink: #2a1846;
+    --ticket-muted: #7a6a93;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    background-color: var(--bg-1);
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(255, 143, 171, 0.18), transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(255, 210, 122, 0.14), transparent 45%),
+      linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    background-attachment: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  main {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    text-align: center;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.75rem, 7vw, 2.4rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--gold);
+  }
+
+  .subtitle {
+    margin: 6px 0 0;
+    font-size: 1rem;
+    color: var(--muted);
+  }
+
+  /* ---------- Cuenta regresiva ---------- */
+  .countdown {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    width: 100%;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .unit {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 12px 4px 10px;
+  }
+
+  .unit .num {
+    display: block;
+    font-size: clamp(1.6rem, 8vw, 2.2rem);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+
+  .unit .label {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--pink);
+  }
+
+  /* ---------- Boleto ---------- */
+  .ticket-wrap {
+    position: relative;
+    width: 100%;
+  }
+
+  .ticket {
+    width: 100%;
+    background: var(--ticket-bg);
+    color: var(--ticket-ink);
+    border-radius: 18px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+    text-align: left;
+    overflow: hidden;
+    transition: filter 1.2s ease, opacity 1.2s ease, transform 1.2s ease;
+  }
+
+  .ticket-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: linear-gradient(90deg, var(--bg-2), var(--bg-1));
+    color: var(--gold);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .route {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 18px 18px 14px;
+  }
+
+  .city { display: flex; flex-direction: column; }
+  .city.dest { text-align: right; }
+
+  .iata {
+    font-size: clamp(2.4rem, 13vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.02em;
+  }
+
+  .city small {
+    margin-top: 4px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ticket-muted);
+  }
+
+  .plane {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--pink);
+    min-width: 40px;
+  }
+
+  .plane svg { width: 34px; height: 34px; }
+
+  .fields {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px 10px;
+    padding: 0 18px 18px;
+  }
+
+  .field { min-width: 0; }
+  .field.wide { grid-column: 1 / -1; }
+
+  .field dt {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ticket-muted);
+  }
+
+  .field dd {
+    margin: 2px 0 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .stub {
+    position: relative;
+    border-top: 2px dashed #cbbfdc;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 16px 18px 18px;
+  }
+
+  /* muescas laterales del boleto */
+  .stub::before,
+  .stub::after {
+    content: "";
+    position: absolute;
+    top: -12px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--bg-1);
+  }
+  .stub::before { left: -11px; }
+  .stub::after { right: -11px; }
+
+  .stub .field dd {
+    font-size: 1.15rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stub .code dd {
+    color: var(--bg-2);
+    letter-spacing: 0.08em;
+  }
+
+  /* ---------- Bloqueo ---------- */
+  .lock {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 1rem;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    transition: opacity 0.8s ease;
+    pointer-events: none;
+  }
+
+  .lock-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(27, 16, 53, 0.75);
+    border: 1px solid rgba(255, 210, 122, 0.5);
+    color: var(--gold);
+  }
+
+  .lock-badge svg { width: 30px; height: 30px; }
+
+  .lock-text {
+    background: rgba(27, 16, 53, 0.75);
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+
+  .locked .ticket {
+    filter: blur(7px) grayscale(1);
+    opacity: 0.85;
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+  }
+
+  .locked .ticket-wrap {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* ---------- Mensaje ---------- */
+  .message {
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 1s ease 0.6s, transform 1s ease 0.6s;
+  }
+
+  .message em {
+    font-style: normal;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .locked .message { display: none; }
+
+  .revealed .countdown { display: none; }
+  .revealed .lock { opacity: 0; }
+  .revealed .message { opacity: 1; transform: none; }
+
+  /* Al abrir después de la fecha: sin animaciones */
+  .instant .ticket,
+  .instant .lock,
+  .instant .message { transition: none !important; }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticket, .lock, .message, .countdown { transition: none !important; }
+  }
+
+  @media (min-width: 720px) {
+    main { max-width: 520px; gap: 26px; }
+    .unit { padding: 16px 6px 12px; }
+  }
+</style>
+</head>
+<body>
+<main id="app" class="locked">
+  <header>
+    <h1 id="titulo">Algo especial te espera</h1>
+    <p class="subtitle" id="subtitulo">Falta muy poco para descubrirlo</p>
+  </header>
+
+  <section class="countdown" id="countdown" aria-live="polite" aria-label="Tiempo restante para la sorpresa">
+    <div class="unit" role="group"><span class="num" id="cd-dias">00</span><span class="label" id="lbl-dias">Días</span></div>
+    <div class="unit" role="group"><span class="num" id="cd-horas">00</span><span class="label" id="lbl-horas">Horas</span></div>
+    <div class="unit" role="group"><span class="num" id="cd-min">00</span><span class="label" id="lbl-min">Minutos</span></div>
+    <div class="unit" role="group"><span class="num" id="cd-seg">00</span><span class="label" id="lbl-seg">Segundos</span></div>
+  </section>
+
+  <div class="ticket-wrap">
+    <article class="ticket" id="ticket" aria-label="Boleto de avión">
+      <div class="ticket-head">
+        <span>Tarjeta de embarque</span>
+        <span id="t-aerolinea-head"></span>
+      </div>
+      <div class="route">
+        <div class="city">
+          <span class="iata" id="t-origen"></span>
+          <small>Origen</small>
+        </div>
+        <div class="plane" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" transform="rotate(90 12 12)"/></svg>
+        </div>
+        <div class="city dest">
+          <span class="iata" id="t-destino"></span>
+          <small>Destino</small>
+        </div>
+      </div>
+      <dl class="fields">
+        <div class="field wide"><dt>Pasajera</dt><dd id="t-pasajera"></dd></div>
+        <div class="field"><dt>Aerolínea</dt><dd id="t-aerolinea"></dd></div>
+        <div class="field"><dt>Fecha</dt><dd id="t-fecha"></dd></div>
+        <div class="field"><dt>Vuelo</dt><dd id="t-vuelo"></dd></div>
+      </dl>
+      <dl class="stub">
+        <div class="field"><dt>Hora</dt><dd id="t-hora"></dd></div>
+        <div class="field"><dt>Asiento</dt><dd id="t-asiento"></dd></div>
+        <div class="field code"><dt>Reserva</dt><dd id="t-reserva"></dd></div>
+      </dl>
+    </article>
+
+    <div class="lock" id="lock">
+      <span class="lock-badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      </span>
+      <span class="lock-text">Se abre a las 10:00 p. m.</span>
+    </div>
+  </div>
+
+  <p class="message" id="mensaje"></p>
+</main>
+
+<script>
+  // ==========================================================
+  //  CONFIGURACIÓN: edita solo este objeto
+  // ==========================================================
+  const CONFIG = {
+    revelarEn: "2026-11-22T22:00:00-05:00", // domingo 22 nov 2026, 10:00 p. m. hora de Perú
+    pasajera: "Alessia",
+    origen: "LIM",
+    destino: "CUZ",
+    aerolinea: "LATAM",
+    fecha: "12 dic 2026",
+    vuelo: "LA2025",
+    hora: "07:30",
+    asiento: "14A",
+    reserva: "ABC123",
+    mensaje: "Este viaje es para recordarte que <em>mereces todo lo bonito</em> que el mundo tiene para ofrecer. Prepara la maleta, porque lo mejor <em>apenas está empezando</em>."
+  };
+
+  (function () {
+    "use strict";
+
+    // Timestamp absoluto (la cadena incluye -05:00, no depende de la zona del dispositivo)
+    const objetivo = new Date(CONFIG.revelarEn).getTime();
+
+    const $ = (id) => document.getElementById(id);
+    const app = $("app");
+    const ticket = $("ticket");
+    let intervalo = null;
+
+    // Rellenar boleto
+    $("t-origen").textContent = CONFIG.origen;
+    $("t-destino").textContent = CONFIG.destino;
+    $("t-pasajera").textContent = CONFIG.pasajera;
+    $("t-aerolinea").textContent = CONFIG.aerolinea;
+    $("t-aerolinea-head").textContent = CONFIG.aerolinea;
+    $("t-fecha").textContent = CONFIG.fecha;
+    $("t-vuelo").textContent = CONFIG.vuelo;
+    $("t-hora").textContent = CONFIG.hora;
+    $("t-asiento").textContent = CONFIG.asiento;
+    $("t-reserva").textContent = CONFIG.reserva;
+    $("mensaje").innerHTML = CONFIG.mensaje; // permite <em> para el énfasis dorado
+
+    const dos = (n) => String(n).padStart(2, "0");
+
+    const els = {
+      dias: $("cd-dias"), horas: $("cd-horas"), min: $("cd-min"), seg: $("cd-seg")
+    };
+
+    function bloquear() {
+      ticket.setAttribute("aria-hidden", "true");
+      ticket.setAttribute("inert", "");
+    }
+
+    function revelar(instantaneo) {
+      if (intervalo !== null) { clearInterval(intervalo); intervalo = null; }
+      if (instantaneo) app.classList.add("instant");
+      app.classList.remove("locked");
+      app.classList.add("revealed");
+      ticket.removeAttribute("aria-hidden");
+      ticket.removeAttribute("inert");
+      $("lock").setAttribute("aria-hidden", "true");
+      $("titulo").textContent = "¡Sorpresa!";
+      $("subtitulo").textContent = "Aquí están tus boletos";
+      document.title = "¡Sorpresa!";
+    }
+
+    function tick() {
+      const diff = objetivo - Date.now();
+      if (!(diff > 0)) { revelar(false); return; }
+
+      const total = Math.floor(diff / 1000);
+      const d = Math.floor(total / 86400);
+      const h = Math.floor((total % 86400) / 3600);
+      const m = Math.floor((total % 3600) / 60);
+      const s = total % 60;
+
+      els.dias.textContent = dos(d);
+      els.horas.textContent = dos(h);
+      els.min.textContent = dos(m);
+      els.seg.textContent = dos(s);
+
+      els.dias.parentElement.setAttribute("aria-label", d + (d === 1 ? " día" : " días"));
+      els.horas.parentElement.setAttribute("aria-label", h + (h === 1 ? " hora" : " horas"));
+      els.min.parentElement.setAttribute("aria-label", m + (m === 1 ? " minuto" : " minutos"));
+      els.seg.parentElement.setAttribute("aria-label", s + (s === 1 ? " segundo" : " segundos"));
+    }
+
+    if (objetivo - Date.now() <= 0) {
+      // Abierta después de la fecha límite: estado revelado directo
+      revelar(true);
+    } else {
+      bloquear();
+      tick();
+      intervalo = setInterval(tick, 1000);
+    }
+  })();
+</script>
+</body>
+</html>
