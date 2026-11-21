@@ -222,55 +222,107 @@
     letter-spacing: 0.08em;
   }
 
-  /* ---------- Bloqueo ---------- */
-  .lock {
-    position: absolute;
-    inset: 0;
+  /* ---------- Collage (estado bloqueado) ---------- */
+  .collage-wrap {
+    position: relative;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 16px;
+  }
+
+  .collage {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    padding: 6px 4px;
+  }
+
+  .polaroid {
+    margin: 0;
+    background: var(--ticket-bg);
+    padding: 6px 6px 18px;
+    border-radius: 4px;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+    transform: rotate(var(--rot, 0deg));
+    transition: transform 0.3s ease;
+  }
+  .polaroid:nth-child(6n+1) { --rot: -4deg; }
+  .polaroid:nth-child(6n+2) { --rot: 3deg; margin-top: 10px; }
+  .polaroid:nth-child(6n+3) { --rot: -2deg; }
+  .polaroid:nth-child(6n+4) { --rot: 2.5deg; }
+  .polaroid:nth-child(6n+5) { --rot: -3deg; margin-top: -6px; }
+  .polaroid:nth-child(6n)   { --rot: 4deg; }
+  .polaroid:hover { transform: rotate(0deg) scale(1.04); }
+
+  .polaroid .foto {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 2px;
+    background: linear-gradient(145deg, var(--bg-2), var(--pink));
+  }
+
+  .polaroid img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* marcador mientras no exista la foto */
+  .polaroid .vacio {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
     justify-content: center;
+    color: rgba(255, 250, 242, 0.85);
+  }
+  .polaroid .vacio svg { width: 34%; height: 34%; }
+
+  .lock-row {
+    display: flex;
+    align-items: center;
     gap: 10px;
     color: var(--text);
     font-weight: 600;
-    font-size: 1rem;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-    transition: opacity 0.8s ease;
-    pointer-events: none;
+    font-size: 0.95rem;
   }
 
   .lock-badge {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 64px;
-    height: 64px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: rgba(27, 16, 53, 0.75);
     border: 1px solid rgba(255, 210, 122, 0.5);
     color: var(--gold);
+    flex: none;
   }
-
-  .lock-badge svg { width: 30px; height: 30px; }
+  .lock-badge svg { width: 20px; height: 20px; }
 
   .lock-text {
-    background: rgba(27, 16, 53, 0.75);
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     padding: 6px 14px;
     border-radius: 999px;
   }
 
-  .locked .ticket {
-    filter: blur(7px) grayscale(1);
-    opacity: 0.85;
-    user-select: none;
-    -webkit-user-select: none;
-    pointer-events: none;
+  /* Boleto: solo existe tras la revelacion */
+  .ticket-wrap:empty { display: none; }
+  .revealed .ticket { animation: aparecer 1s ease both; }
+  @keyframes aparecer {
+    from { opacity: 0; transform: translateY(14px) scale(0.97); }
+    to   { opacity: 1; transform: none; }
   }
 
-  .locked .ticket-wrap {
-    user-select: none;
-    -webkit-user-select: none;
-  }
+  .revealed .lock-row { display: none; }
+  .revealed .collage-wrap { order: 10; margin-top: 6px; }
 
   /* ---------- Mensaje ---------- */
   .message {
@@ -292,13 +344,11 @@
   .locked .message { display: none; }
 
   .revealed .countdown { display: none; }
-  .revealed .lock { opacity: 0; }
   .revealed .message { opacity: 1; transform: none; }
 
   /* Al abrir después de la fecha: sin animaciones */
   .instant .ticket,
-  .instant .lock,
-  .instant .message { transition: none !important; }
+  .instant .message { transition: none !important; animation: none !important; }
 
   .visually-hidden {
     position: absolute;
@@ -312,7 +362,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ticket, .lock, .message, .countdown { transition: none !important; }
+    .ticket, .message, .countdown, .polaroid { transition: none !important; animation: none !important; }
   }
 
   @media (min-width: 720px) {
@@ -335,7 +385,22 @@
     <div class="unit" role="group"><span class="num" id="cd-seg">00</span><span class="label" id="lbl-seg">Segundos</span></div>
   </section>
 
-  <div class="ticket-wrap">
+  <div class="ticket-wrap" id="ticket-wrap"></div>
+
+  <section class="collage-wrap" aria-label="Nuestras fotos">
+    <div class="collage" id="collage"></div>
+    <div class="lock-row" id="lock">
+      <span class="lock-badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      </span>
+      <span class="lock-text">Se abre a las 10:00 p. m.</span>
+    </div>
+  </section>
+
+  <p class="message" id="mensaje"></p>
+</main>
+
+<template id="tpl-ticket">
     <article class="ticket" id="ticket" aria-label="Boleto de avión">
       <div class="ticket-head">
         <span>Tarjeta de embarque</span>
@@ -366,17 +431,7 @@
         <div class="field code"><dt>Reserva</dt><dd id="t-reserva"></dd></div>
       </dl>
     </article>
-
-    <div class="lock" id="lock">
-      <span class="lock-badge" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-      </span>
-      <span class="lock-text">Se abre a las 10:00 p. m.</span>
-    </div>
-  </div>
-
-  <p class="message" id="mensaje"></p>
-</main>
+</template>
 
 <script>
   // ==========================================================
@@ -393,6 +448,8 @@
     hora: "07:30",
     asiento: "14A",
     reserva: "ABC123",
+    // Fotos del collage: reemplaza o agrega rutas (p. ej. sube las fotos a la carpeta fotos/)
+    fotos: ["fotos/1.jpg", "fotos/2.jpg", "fotos/3.jpg", "fotos/4.jpg", "fotos/5.jpg", "fotos/6.jpg"],
     mensaje: "Este viaje es para recordarte que <em>mereces todo lo bonito</em> que el mundo tiene para ofrecer. Prepara la maleta, porque lo mejor <em>apenas está empezando</em>."
   };
 
@@ -404,21 +461,49 @@
 
     const $ = (id) => document.getElementById(id);
     const app = $("app");
-    const ticket = $("ticket");
     let intervalo = null;
 
-    // Rellenar boleto
-    $("t-origen").textContent = CONFIG.origen;
-    $("t-destino").textContent = CONFIG.destino;
-    $("t-pasajera").textContent = CONFIG.pasajera;
-    $("t-aerolinea").textContent = CONFIG.aerolinea;
-    $("t-aerolinea-head").textContent = CONFIG.aerolinea;
-    $("t-fecha").textContent = CONFIG.fecha;
-    $("t-vuelo").textContent = CONFIG.vuelo;
-    $("t-hora").textContent = CONFIG.hora;
-    $("t-asiento").textContent = CONFIG.asiento;
-    $("t-reserva").textContent = CONFIG.reserva;
-    $("mensaje").innerHTML = CONFIG.mensaje; // permite <em> para el énfasis dorado
+    // Collage de fotos (si una foto no existe, se muestra un marcador)
+    const corazon = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.6-9.1C.9 8.6 2.8 4.5 6.6 4.5c2.2 0 3.6 1.2 5.4 3.2 1.8-2 3.2-3.2 5.4-3.2 3.8 0 5.7 4.1 4.2 7.4C19.5 16.4 12 21 12 21z"/></svg>';
+    const collage = $("collage");
+    (CONFIG.fotos || []).forEach(function (src, i) {
+      const fig = document.createElement("figure");
+      fig.className = "polaroid";
+      const marco = document.createElement("div");
+      marco.className = "foto";
+      const img = new Image();
+      img.alt = "Foto " + (i + 1);
+      img.decoding = "async";
+      img.onerror = function () {
+        img.remove();
+        const v = document.createElement("span");
+        v.className = "vacio";
+        v.setAttribute("aria-hidden", "true");
+        v.innerHTML = corazon;
+        marco.appendChild(v);
+      };
+      img.src = src;
+      marco.appendChild(img);
+      fig.appendChild(marco);
+      collage.appendChild(fig);
+    });
+
+    // El boleto NO esta en la pagina hasta la revelacion
+    function mostrarBoleto() {
+      if ($("ticket")) return;
+      $("ticket-wrap").appendChild($("tpl-ticket").content.cloneNode(true));
+      $("t-origen").textContent = CONFIG.origen;
+      $("t-destino").textContent = CONFIG.destino;
+      $("t-pasajera").textContent = CONFIG.pasajera;
+      $("t-aerolinea").textContent = CONFIG.aerolinea;
+      $("t-aerolinea-head").textContent = CONFIG.aerolinea;
+      $("t-fecha").textContent = CONFIG.fecha;
+      $("t-vuelo").textContent = CONFIG.vuelo;
+      $("t-hora").textContent = CONFIG.hora;
+      $("t-asiento").textContent = CONFIG.asiento;
+      $("t-reserva").textContent = CONFIG.reserva;
+      $("mensaje").innerHTML = CONFIG.mensaje; // permite <em> para el enfasis dorado
+    }
 
     const dos = (n) => String(n).padStart(2, "0");
 
@@ -426,18 +511,12 @@
       dias: $("cd-dias"), horas: $("cd-horas"), min: $("cd-min"), seg: $("cd-seg")
     };
 
-    function bloquear() {
-      ticket.setAttribute("aria-hidden", "true");
-      ticket.setAttribute("inert", "");
-    }
-
     function revelar(instantaneo) {
       if (intervalo !== null) { clearInterval(intervalo); intervalo = null; }
       if (instantaneo) app.classList.add("instant");
+      mostrarBoleto();
       app.classList.remove("locked");
       app.classList.add("revealed");
-      ticket.removeAttribute("aria-hidden");
-      ticket.removeAttribute("inert");
       $("lock").setAttribute("aria-hidden", "true");
       $("titulo").textContent = "¡Sorpresa!";
       $("subtitulo").textContent = "Aquí están tus boletos";
@@ -469,7 +548,6 @@
       // Abierta después de la fecha límite: estado revelado directo
       revelar(true);
     } else {
-      bloquear();
       tick();
       intervalo = setInterval(tick, 1000);
     }
