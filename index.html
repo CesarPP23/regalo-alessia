@@ -255,11 +255,13 @@
   .polaroid:nth-child(6n+4) { --rot: 2.5deg; }
   .polaroid:nth-child(6n+5) { --rot: -3deg; margin-top: -6px; }
   .polaroid:nth-child(6n)   { --rot: 4deg; }
+  /* si la ultima foto queda sola en su fila, centrarla */
+  .polaroid:last-child:nth-child(3n+1) { grid-column: 2; }
   .polaroid:hover { transform: rotate(0deg) scale(1.04); }
 
   .polaroid .foto {
     position: relative;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 4 / 5;
     overflow: hidden;
     border-radius: 2px;
     background: linear-gradient(145deg, var(--bg-2), var(--pink));
@@ -270,6 +272,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center 30%;
   }
 
   /* marcador mientras no exista la foto */
@@ -449,7 +452,8 @@
     asiento: "14A",
     reserva: "ABC123",
     // Fotos del collage: reemplaza o agrega rutas (p. ej. sube las fotos a la carpeta fotos/)
-    fotos: ["fotos/1.jpg", "fotos/2.jpg", "fotos/3.jpg", "fotos/4.jpg", "fotos/5.jpg", "fotos/6.jpg"],
+    fotos: ["fotos/1.jpg", "fotos/2.jpg", "fotos/3.jpg", "fotos/4.jpg", "fotos/5.jpg",
+            "fotos/6.jpg", "fotos/7.jpg", "fotos/8.jpg", "fotos/9.jpg", "fotos/10.jpg"],
     mensaje: "Este viaje es para recordarte que <em>mereces todo lo bonito</em> que el mundo tiene para ofrecer. Prepara la maleta, porque lo mejor <em>apenas está empezando</em>."
   };
 
