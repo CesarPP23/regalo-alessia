@@ -167,13 +167,14 @@
 
   .fields {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr 1.25fr 1fr;
     gap: 12px 10px;
     padding: 0 18px 18px;
   }
 
   .field { min-width: 0; }
   .field.wide { grid-column: 1 / -1; }
+  .field.span2 { grid-column: span 2; }
 
   .field dt {
     font-size: 0.66rem;
@@ -217,7 +218,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .stub .code dd {
+  .code dd {
     color: var(--bg-2);
     letter-spacing: 0.08em;
   }
@@ -507,15 +508,16 @@
         </div>
       </div>
       <dl class="fields">
-        <div class="field wide"><dt>Pasajera</dt><dd id="t-pasajera"></dd></div>
+        <div class="field span2"><dt>Pasajera</dt><dd id="t-pasajera"></dd></div>
+        <div class="field code"><dt>Reserva</dt><dd id="t-reserva"></dd></div>
         <div class="field"><dt>Aerolínea</dt><dd id="t-aerolinea"></dd></div>
-        <div class="field"><dt>Fecha</dt><dd id="t-fecha"></dd></div>
+        <div class="field"><dt>Fecha</dt><dd id="t-fecha" style="white-space: nowrap"></dd></div>
         <div class="field"><dt>Vuelo</dt><dd id="t-vuelo"></dd></div>
       </dl>
       <dl class="stub">
-        <div class="field"><dt>Hora</dt><dd id="t-hora"></dd></div>
+        <div class="field"><dt>Salida</dt><dd id="t-hora"></dd></div>
+        <div class="field"><dt>Llegada</dt><dd id="t-llegada"></dd></div>
         <div class="field"><dt>Asiento</dt><dd id="t-asiento"></dd></div>
-        <div class="field code"><dt>Reserva</dt><dd id="t-reserva"></dd></div>
       </dl>
     </article>
 </template>
@@ -528,11 +530,12 @@
     revelarEn: "2026-11-22T22:00:00-05:00", // domingo 22 nov 2026, 10:00 p. m. hora de Perú
     pasajera: "Alessia",
     origen: "LIM",
-    destino: "CUZ",
+    destino: "PIU",
     aerolinea: "LATAM",
-    fecha: "12 dic 2026",
+    fecha: "25 mar 2027",
     vuelo: "LA2025",
-    hora: "07:30",
+    hora: "05:25",      // salida
+    llegada: "07:05",
     asiento: "14A",
     reserva: "ABC123",
     // Fotos del collage: cambia la frase que aparece al tocar cada foto
@@ -622,6 +625,7 @@
       $("t-fecha").textContent = CONFIG.fecha;
       $("t-vuelo").textContent = CONFIG.vuelo;
       $("t-hora").textContent = CONFIG.hora;
+      $("t-llegada").textContent = CONFIG.llegada || "";
       $("t-asiento").textContent = CONFIG.asiento;
       $("t-reserva").textContent = CONFIG.reserva;
       $("mensaje").innerHTML = CONFIG.mensaje; // permite <em> para el enfasis dorado
